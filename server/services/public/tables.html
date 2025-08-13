@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Отчёты</title>
+    <link
+      rel="stylesheet"
+      href="/tabulator-tables/dist/css/tabulator.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      #reports-table {
+        margin-top: 20px;
+      }
+
+      #reports-pharma-table {
+        margin-top: 20px;
+      }
+      .btn {
+        background-color: #4caf50;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-logout {
+        background-color: #f44336;
+      }
+      .btn-export {
+        background-color: #2196f3;
+      }
+      button:hover {
+        background-color: #3a3e3a;
+        transform: scale(1.05);
+      }
+
+      button:active {
+        background-color: #171616;
+        transform: scale(0.98);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Отчёты</h1>
+    <h2>Магазины</h2>
+    <button class="btn" onclick="window.location.href='photos.html'">
+      Фото
+    </button>
+    <button class="btn btn-export" id="export-btn">Экспорт в Excel</button>
+    <button class="btn btn-logout" id="logout-btn" style="float: right">
+      Выйти
+    </button>
+
+    <div id="reports-table"></div>
+
+    <h2>Аптеки</h2>
+    <button class="btn" onclick="window.location.href='photos.html'">
+      Фото
+    </button>
+    <button class="btn btn-export" id="export-pharma-btn">
+      Экспорт в Excel
+    </button>
+    <button class="btn btn-logout" id="logout-pharma-btn" style="float: right">
+      Выйти
+    </button>
+
+    <div id="reports-pharma-table"></div>
+
+    <!-- Подключаем Tabulator -->
+    <script src="/tabulator-tables/dist/js/tabulator.min.js"></script>
+    <!-- Подключаем XLSX из node_modules -->
+    <script src="/xlsx/dist/xlsx.full.min.js"></script>
+
+    <script>
+      let table; // сохраним таблицу глобально
+      let tablePharma;
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const res = await fetch("/api/reports", { credentials: "include" });
+          const data = await res.json();
+
+          if (!res.ok) throw new Error(data.error || "Ошибка загрузки данных");
+
+          // делаем XLSX доступным Tabulator
+          window.XLSX = XLSX;
+
+          table = new Tabulator("#reports-table", {
+            data: data.resultA,
+            layout: "fitColumns",
+            responsiveLayout: "hide",
+
+            columns: [
+              {
+                title: "Дата отчёта",
+                field: "report_date",
+                sorter: "date",
+                width: 150,
+              },
+              { title: "Имя", field: "merch_name" },
+              { title: "Телефон", field: "merch_phone" },
+              { title: "Кол-во товара", field: "product_count" },
+              {
+                title: "Latitude",
+                field: "latitude",
+                formatter: (cell) => {
+                  const value = cell.getValue();
+                  return value
+                    ? `<a href="https://www.google.com/maps?q=${value},${
+                        cell.getRow().getData().longitude
+                      }" target="_blank">${value}</a>`
+                    : "";
+                },
+              },
+              {
+                title: "Longitude",
+                field: "longitude",
+                formatter: (cell) => {
+                  const value = cell.getValue();
+                  return value
+                    ? `<a href="https://www.google.com/maps?q=${
+                        cell.getRow().getData().latitude
+                      },${value}" target="_blank">${value}</a>`
+                    : "";
+                },
+              },
+              {
+                title: "Фото",
+                field: "photo_url",
+                formatter: (cell) => {
+                  const url = cell.getValue();
+                  if (url) {
+                    return `<a href="${url}" target="_blank">Открыть</a>`;
+                  }
+                  return "";
+                },
+              },
+            ],
+          });
+
+          tablePharma = new Tabulator("#reports-pharma-table", {
+            data: data.resultB,
+            layout: "fitColumns",
+            responsiveLayout: "hide",
+
+            columns: [
+              {
+                title: "Дата отчёта",
+                field: "report_date",
+                sorter: "date",
+                width: 150,
+              },
+              { title: "Имя", field: "merch_name" },
+              { title: "Телефон", field: "merch_phone" },
+              {
+                title: "Наличие товара",
+                field: "product_exists",
+                formatter: (cell) => {
+                  const product = cell.getValue();
+                  if (product) {
+                    return `Да`;
+                  }
+                  return "Нет";
+                },
+              },
+              { title: "Промо", field: "promo_type" },
+              {
+                title: "Latitude",
+                field: "latitude",
+                formatter: (cell) => {
+                  const value = cell.getValue();
+                  return value
+                    ? `<a href="https://www.google.com/maps?q=${value},${
+                        cell.getRow().getData().longitude
+                      }" target="_blank">${value}</a>`
+                    : "";
+                },
+              },
+              {
+                title: "Longitude",
+                field: "longitude",
+                formatter: (cell) => {
+                  const value = cell.getValue();
+                  return value
+                    ? `<a href="https://www.google.com/maps?q=${
+                        cell.getRow().getData().latitude
+                      },${value}" target="_blank">${value}</a>`
+                    : "";
+                },
+              },
+              {
+                title: "Фото",
+                field: "photo_url",
+                formatter: (cell) => {
+                  const url = cell.getValue();
+                  if (url) {
+                    return `<a href="${url}" target="_blank">Открыть</a>`;
+                  }
+                  return "";
+                },
+              },
+            ],
+          });
+
+          // Кнопки выхода
+          document
+            .getElementById("logout-btn")
+            .addEventListener("click", async () => {
+              await fetch("/logout", {
+                method: "POST",
+                credentials: "include",
+              });
+              window.location.href = "/login.html";
+            });
+          document
+            .getElementById("logout-pharma-btn")
+            .addEventListener("click", async () => {
+              await fetch("/logout", {
+                method: "POST",
+                credentials: "include",
+              });
+              window.location.href = "/login.html";
+            });
+
+          document
+            .getElementById("export-btn")
+            .addEventListener("click", () => {
+              if (table) {
+                table.download("xlsx", "supermarket.xlsx", {
+                  sheetName: "Магазины",
+                });
+              }
+            });
+
+          document
+            .getElementById("export-pharma-btn")
+            .addEventListener("click", () => {
+              if (table) {
+                table.download("xlsx", "pharma.xlsx", { sheetName: "Аптеки" });
+              }
+            });
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+      });
+    </script>
+  </body>
+</html>

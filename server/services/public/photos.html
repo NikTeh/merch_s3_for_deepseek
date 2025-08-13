@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Фото</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .filters {
+        margin: 20px 0;
+      }
+      .filters label {
+        margin-right: 10px;
+      }
+      .buttons {
+        margin-bottom: 20px;
+      }
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+      }
+      .photo-card {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+      }
+      .photo-card img {
+        max-width: 100%;
+        height: auto;
+      }
+      .btn {
+        background-color: #4caf50;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-logout {
+        background-color: #f44336;
+      }
+      .btn-report {
+        background-color: #2196f3;
+      }
+      button:hover {
+        background-color: #515652;
+        /* background-color: #45a049; */
+        transform: scale(1.05);
+      }
+
+      button:active {
+        background-color: #222120;
+        transform: scale(0.98);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Фотоотчёты</h1>
+      <button class="btn btn-logout" onclick="logout()">Выйти</button>
+    </header>
+
+    <div class="filters">
+      <label>
+        Отдел:
+        <select id="department">
+          <option value="Магазины">Магазины</option>
+          <option value="Аптеки">Аптеки</option>
+        </select>
+      </label>
+      <label>
+        Имя мерчендайзера:
+        <input type="text" id="merchName" placeholder="Введите имя" />
+      </label>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-load" onclick="loadPhotos()">Загрузить</button>
+      <button class="btn btn-report" onclick="goReports()">Отчёты</button>
+    </div>
+
+    <div id="photos" class="photo-grid"></div>
+
+    <script>
+      async function loadPhotos() {
+        const department = document.getElementById("department").value;
+        const merchName = document.getElementById("merchName").value.trim();
+
+        const params = new URLSearchParams({
+          table: department,
+          merch_name: merchName,
+        });
+
+        try {
+          const res = await fetch(`/api/photos?${params.toString()}`);
+          if (!res.ok) {
+            throw new Error("Ошибка при загрузке фото");
+          }
+          const data = await res.json();
+
+          const container = document.getElementById("photos");
+          container.innerHTML = "";
+
+          data.photos.forEach((photo) => {
+            const card = document.createElement("div");
+            card.className = "photo-card";
+            card.innerHTML = `
+            <p>${photo.merch_name}</p>
+            <p>${new Date(photo.report_date).toLocaleDateString()}</p>
+            <a href="${photo.photo_url}" target="_blank">
+              <img src="${photo.photo_url}" alt="Фото" />
+            </a>
+          `;
+            container.appendChild(card);
+          });
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+
+      function goReports() {
+        window.location.href = "/tables.html";
+      }
+
+      function logout() {
+        fetch("/logout")
+          .then(() => (window.location.href = "/"))
+          .catch((err) => console.error(err));
+      }
+    </script>
+  </body>
+</html>
