@@ -13,7 +13,7 @@ bot.use(session());
 bot.use(stage.middleware());
 
 // Хранилище паролей (можно вынести в базу)
-const PASSWORD = "1234";
+const PASSWORD  = process.env.BOT_LOGIN_KEY;
 
 // Команда /start — запрос пароля
 bot.start((ctx) => {

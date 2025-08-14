@@ -60,10 +60,10 @@ app.post("/login", (req, res) => {
 app.get("/api/reports", authMiddleware, async (req, res) => {
   try {
     const resultA = await db.query(
-      "SELECT * FROM reports_a ORDER BY report_date DESC"
+      "SELECT *, s3_url as s3_photo FROM reports_a ORDER BY report_date DESC"
     );
     const resultB = await db.query(
-      "SELECT * FROM reports_b ORDER BY report_date DESC"
+      "SELECT *, s3_url as s3_photo FROM reports_b ORDER BY report_date DESC"
     );
 
     const fixedReportsA = resultA.rows.map((r) => {
@@ -72,19 +72,21 @@ app.get("/api/reports", authMiddleware, async (req, res) => {
       }
       return r;
     });
-     const fixedReportsB = resultB.rows.map((r) => {
+
+    const fixedReportsB = resultB.rows.map((r) => {
       if (r.photo_url && !r.photo_url.startsWith("http")) {
         r.photo_url = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${r.photo_url}`;
       }
       return r;
     });
 
-    res.json({ resultA: fixedReportsA, resultB: fixedReportsB, }); // отправляем только один раз
+    res.json({
+      resultA: fixedReportsA,
+      resultB: fixedReportsB,
+    });
   } catch (err) {
     console.error("Ошибка загрузки отчётов:", err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "Ошибка загрузки данных" });
-    }
+    res.status(500).json({ error: "Ошибка загрузки данных" });
   }
 });
 
@@ -104,8 +106,9 @@ app.get("/api/photos", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Неверный отдел" });
     }
 
-    let query = `SELECT merch_name, photo_url, report_date 
+    let query = `SELECT merch_name, s3_url as photo_url, report_date 
                  FROM ${tableName}`;
+    //  WHERE s3_url IS NOT NULL AND s3_url != 'нет фото'`;//не работает ломает фильтрацию по имени
     let params = [];
 
     // Фильтр по имени
@@ -118,24 +121,13 @@ app.get("/api/photos", authMiddleware, async (req, res) => {
 
     const result = await db.query(query, params);
 
-    // Добавляем полный URL к фото
-    const photos = result.rows.map((r) => {
-      if (r.photo_url && !r.photo_url.startsWith("https")) {
-        r.photo_url = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${r.photo_url}`;
-      }
-      return r;
-    });
-
+    const photos = result.rows;
     res.json({ photos });
   } catch (err) {
     console.error("Ошибка загрузки фото:", err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "Ошибка загрузки данных" });
-    }
+    res.status(500).json({ error: "Ошибка загрузки данных" });
   }
 });
-
-
 
 // ===== Запуск =====
 app.listen(PORT, () => {

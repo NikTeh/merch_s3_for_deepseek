@@ -44,6 +44,11 @@
         background-color: #171616;
         transform: scale(0.98);
       }
+      .tabulator .tabulator-row .tabulator-cell {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
     </style>
   </head>
   <body>
@@ -87,7 +92,7 @@
 
           if (!res.ok) throw new Error(data.error || "Ошибка загрузки данных");
 
-          // делаем XLSX доступным Tabulator
+          // делаем XLSX доступным для Tabulator
           window.XLSX = XLSX;
 
           table = new Tabulator("#reports-table", {
@@ -106,7 +111,7 @@
               { title: "Телефон", field: "merch_phone" },
               { title: "Кол-во товара", field: "product_count" },
               {
-                title: "Latitude",
+                title: "Широта",
                 field: "latitude",
                 formatter: (cell) => {
                   const value = cell.getValue();
@@ -118,7 +123,7 @@
                 },
               },
               {
-                title: "Longitude",
+                title: "Долгота",
                 field: "longitude",
                 formatter: (cell) => {
                   const value = cell.getValue();
@@ -129,15 +134,23 @@
                     : "";
                 },
               },
+              // {
+              //   title: "Фото (Telegram)",
+              //   field: "photo_url",
+              //   formatter: (cell) => {
+              //     const url = cell.getValue();
+              //     return url
+              //       ? `<a href="${url}" target="_blank">Открыть</a>`
+              //       : "";
+              //   },
+              // },
               {
-                title: "Фото",
-                field: "photo_url",
+                title: "Фото (S3)",
+                field: "s3_photo",
                 formatter: (cell) => {
                   const url = cell.getValue();
-                  if (url) {
-                    return `<a href="${url}" target="_blank">Открыть</a>`;
-                  }
-                  return "";
+                  if (!url || url === "нет фото") return "";
+                  return `<a href="${url}" target="_blank">Открыть</a>`;
                 },
               },
             ],
@@ -170,7 +183,7 @@
               },
               { title: "Промо", field: "promo_type" },
               {
-                title: "Latitude",
+                title: "Широта",
                 field: "latitude",
                 formatter: (cell) => {
                   const value = cell.getValue();
@@ -182,7 +195,7 @@
                 },
               },
               {
-                title: "Longitude",
+                title: "Долгота",
                 field: "longitude",
                 formatter: (cell) => {
                   const value = cell.getValue();
@@ -193,15 +206,23 @@
                     : "";
                 },
               },
+              // {
+              //   title: "Фото (Telegram)",
+              //   field: "photo_url",
+              //   formatter: (cell) => {
+              //     const url = cell.getValue();
+              //     return url
+              //       ? `<a href="${url}" target="_blank">Открыть</a>`
+              //       : "";
+              //   },
+              // },
               {
-                title: "Фото",
-                field: "photo_url",
+                title: "Фото (S3)",
+                field: "s3_photo",
                 formatter: (cell) => {
                   const url = cell.getValue();
-                  if (url) {
-                    return `<a href="${url}" target="_blank">Открыть</a>`;
-                  }
-                  return "";
+                  if (!url || url === "нет фото") return "";
+                  return `<a href="${url}" target="_blank">Открыть</a>`;
                 },
               },
             ],
