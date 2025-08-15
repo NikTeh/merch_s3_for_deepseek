@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: merch-app-prod
+    ports:
+      - "3000:3000"  # Порт для веб-сервера
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    # Настройки логов Docker (ротация и размер)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Переменные для PM2 (если нужны)
+    environment:
+      NODE_ENV: production
+
+  db:
+    image: postgres:15-alpine
+    container_name: merch-db-prod
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE}
+    # Только внутренний порт (наружу не экспортируем)
+    expose:
+      - "5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data  # Постоянное хранилище для БД
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql  # Инициализация схемы
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER} -d ${PGDATABASE}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data:  # Управляется Docker (хранится на хосте)
+
+# Сети не указаны явно - используем default network

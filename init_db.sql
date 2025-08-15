@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS reports_a (
     latitude NUMERIC(9,6),
     longitude NUMERIC(9,6),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    photo_url TEXT NOT NULL
+    photo_url TEXT NOT NULL,
+    s3_url TEXT
 );
 
 -- Таблица отчетов отдела Б
@@ -22,5 +23,6 @@ CREATE TABLE IF NOT EXISTS reports_b (
     latitude NUMERIC(9,6),
     longitude NUMERIC(9,6),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    photo_url TEXT NOT NULL
+    photo_url TEXT NOT NULL,
+    s3_url TEXT
 );

@@ -1,5 +1,5 @@
 {
-  "name": "merch_s3",
+  "name": "merch_s3_final_start",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,7 @@
     "multer": "^2.0.2",
     "node-fetch": "^2.7.0",
     "pg": "^8.16.3",
+    "pm2": "^6.0.8",
     "tabulator-tables": "^6.3.1",
     "telegraf": "^4.16.3",
     "xlsx": "^0.18.5"
