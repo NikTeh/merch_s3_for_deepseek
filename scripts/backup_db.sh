@@ -11,8 +11,8 @@ S3_PATH="s3://$S3_BUCKET_NAME/backups/$BACKUP_FILE"
 
 docker compose exec -T db pg_dump -U $PGUSER -d $PGDATABASE > $BACKUP_FILE
 
-aws --no-verify-ssl --endpoint-url=$S3_ENDPOINT s3 cp $BACKUP_FILE $S3_PATH
-aws --no-verify-ssl --endpoint-url=$S3_ENDPOINT s3 cp $BACKUP_FILE "s3://$S3_BUCKET_NAME/backups/db_dump_latest.sql"
+aws --endpoint-url=$S3_ENDPOINT s3 cp $BACKUP_FILE $S3_PATH  # ← БЕЗ --no-verify-ssl
+aws --endpoint-url=$S3_ENDPOINT s3 cp $BACKUP_FILE "s3://$S3_BUCKET_NAME/backups/db_dump_latest.sql"
 
 rm $BACKUP_FILE
 echo "Backup completed: $S3_PATH"
